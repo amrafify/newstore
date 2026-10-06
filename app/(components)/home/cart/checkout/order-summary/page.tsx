@@ -143,7 +143,7 @@ const OrderSummary1 = ({
     const fainalData = data?.find((item: any) => item.id === orderId)
     console.log(fainalData, 'fainalData');
     DEFAULT_ORDER = {
-        orderNumber: `ORD-2026-${Number(localStorage.getItem('orderId'))}`,
+        orderNumber: `ORD-2026-${orderId}`,
         orderDate: new Date(fainalData?.createdAt).toLocaleDateString('en-US', {
             month: "long",
             day: "numeric",
