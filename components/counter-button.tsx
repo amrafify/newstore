@@ -37,7 +37,7 @@ export const CounterButton = ({
     console.log(data, 'dfgh');
     setCount(count + 1)
   }
-  async function updateCartCount(count: { 'count': string }) {
+  async function updateCartCount(count: any) {
     const data = await updateCart(id, count)
     setCountOfCart(data.numOfCartItems)
     console.log(data);
