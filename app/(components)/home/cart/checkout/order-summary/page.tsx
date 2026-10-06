@@ -139,7 +139,7 @@ const OrderSummary1 = ({
         queryFn: orderSummary,
         // يمكننا جعله لا يعمل إلا إذا كان الـ userId موجوداً في المتصفح مثلاً
     });
-    const orderId = Number(localStorage?.getItem('orderId'))
+    const orderId = typeof window !== 'undefined' ? localStorage.getItem('orderId') : null
     const fainalData = data?.find((item: any) => item.id === orderId)
     console.log(fainalData, 'fainalData');
     DEFAULT_ORDER = {
