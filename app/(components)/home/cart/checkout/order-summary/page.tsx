@@ -2,14 +2,13 @@
 import { useQuery } from "@tanstack/react-query";
 import {
     CheckCircle,
-    CreditCard,
     Download,
     MapPin,
     Package,
     Printer,
     Truck,
 } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils"; // تأكد من مسار دالة cn لديك
 
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
@@ -20,208 +19,51 @@ import { orderSummary } from "@/app/utils/api";
 import { useUesrNameState } from "@/app/(components)/store/uesCount";
 import Link from "next/link";
 
-interface OrderItem {
-    id: string;
-    name: string;
-    image: string;
-    price: number;
-    quantity: number;
-    details?: { label: string; value: string }[];
-}
+const OrderSummary1 = ({ className }: { className?: string }) => {
+    const { uesrEmail } = useUesrNameState();
+    const orderId = typeof window !== 'undefined' ? localStorage.getItem('orderId') : null;
 
-interface ShippingAddress {
-    name: string;
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-}
-
-interface PaymentMethod {
-    type: "card" | "paypal" | "bank";
-    lastFour?: string;
-    cardBrand?: string;
-    email?: string;
-}
-
-interface OrderSummaryData {
-    orderNumber: string;
-    orderDate: string;
-    status: "confirmed" | "processing" | "shipped" | "delivered";
-    email: string;
-    items: OrderItem[];
-    subtotal: number;
-    shipping: number;
-    tax: number;
-    discount?: number;
-    total: number;
-    shippingAddress: ShippingAddress;
-    shippingMethod: string;
-    estimatedDelivery: string;
-    paymentMethod: PaymentMethod;
-}
-
-let DEFAULT_ORDER: OrderSummaryData = {
-    orderNumber: `ORD-2026-000`,
-    orderDate: "December 14, 2024",
-    status: "confirmed",
-    email: "customer@example.com",
-    items: [
-        {
-            id: "1",
-            name: "Minimalist Beige Sneakers",
-            image:
-                "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/clothes/Minimalist-Beige-Sneakers-2.png",
-            price: 120.0,
-            quantity: 1,
-            details: [
-                { label: "Size", value: "42" },
-                { label: "Color", value: "Beige" },
-            ],
-        },
-        {
-            id: "2",
-            name: "Embroidered Blue Top",
-            image:
-                "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/clothes/Woman-in-Embroidered-Blue-Top-2.png",
-            price: 140.0,
-            quantity: 2,
-            details: [
-                { label: "Size", value: "M" },
-                { label: "Color", value: "Blue" },
-            ],
-        },
-        {
-            id: "3",
-            name: "Classic Fedora Hat",
-            image:
-                "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/ecommerce/accessories/Classic-Fedora-Hat-2.png",
-            price: 84.0,
-            quantity: 1,
-            details: [{ label: "Size", value: "One Size" }],
-        },
-    ],
-    subtotal: 484.0,
-    shipping: 12.0,
-    tax: 38.72,
-    discount: 50.0,
-    total: 484.72,
-    shippingAddress: {
-        name: "Alex Johnson",
-        street: "1234 Maple Street, Apt 5B",
-        city: "San Francisco",
-        state: "CA",
-        zipCode: "94102",
-        country: "United States",
-    },
-    shippingMethod: "Express Shipping",
-    estimatedDelivery: "December 18-20, 2024",
-    paymentMethod: {
-        type: "paypal",
-        lastFour: "4242",
-        cardBrand: "Visa",
-    },
-};
-
-interface OrderSummary1Props {
-    order?: OrderSummaryData;
-    className?: string;
-}
-
-const OrderSummary1 = ({
-    order = DEFAULT_ORDER,
-    className,
-}: OrderSummary1Props) => {
-    const { uesrEmail } = useUesrNameState()
     const { data, isLoading, isError } = useQuery({
         queryKey: ['orderSummary'],
         queryFn: orderSummary,
-        // يمكننا جعله لا يعمل إلا إذا كان الـ userId موجوداً في المتصفح مثلاً
     });
-    const orderId = typeof window !== 'undefined' ? localStorage.getItem('orderId') : null
-    const fainalData = data?.find((item: any) => item.id === orderId)
-    console.log(fainalData, 'fainalData');
-    DEFAULT_ORDER = {
-        orderNumber: `ORD-2026-${orderId}`,
-        orderDate: new Date(fainalData?.createdAt).toLocaleDateString('en-US', {
-            month: "long",
-            day: "numeric",
-            year: "numeric"
-        }),
-        status: "confirmed",
-        email: uesrEmail,
-        items: [
-            fainalData?.cartItems?.map((item: any, i: number) => {
-                return {
-                    id: item?.product._id,
-                    name: item?.product.title,
-                    image: item?.product.imageCover,
-                    price: item?.price,
-                    quantity: item?.count,
-                    details: [
-                        { label: "Size", value: "42" },
-                        { label: "Color", value: "Beige" }
-                    ]
-                };
-            })
-        ],
-        subtotal: 484.0,
-        shipping: 12.0,
-        tax: 38.72,
-        discount: 50.0,
-        total: 484.72,
-        shippingAddress: {
-            name: "Alex Johnson",
-            street: "1234 Maple Street, Apt 5B",
-            city: "San Francisco",
-            state: "CA",
-            zipCode: "94102",
-            country: "United States",
-        },
-        shippingMethod: "Express Shipping",
-        estimatedDelivery: "December 18-20, 2024",
-        paymentMethod: {
-            type: "paypal",
-            lastFour: "4242",
-            cardBrand: "Visa",
-        },
-    };
-    console.log(DEFAULT_ORDER, 'DEFAULT_ORDER');
 
+    // تنسيق الأسعار بشكل آمن
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: "USD",
-        }).format(price);
+            currency: "EGP",
+        }).format(price || 0);
     };
 
-    const getStatusBadge = (status: OrderSummaryData["status"]) => {
-        const variants: Record<
-            OrderSummaryData["status"],
-            { label: string; className: string }
-        > = {
-            confirmed: {
-                label: "Order Confirmed",
-                className: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10",
-            },
-            processing: {
-                label: "Processing",
-                className: "bg-amber-500/10 text-amber-600 hover:bg-amber-500/10",
-            },
-            shipped: {
-                label: "Shipped",
-                className: "bg-blue-500/10 text-blue-600 hover:bg-blue-500/10",
-            },
-            delivered: {
-                label: "Delivered",
-                className: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10",
-            },
-        };
-        return variants[status];
-    };
+    if (isLoading) {
+        return (
+            <div className="flex min-h-[400px] items-center justify-center">
+                <p className="text-muted-foreground">Loading order details...</p>
+            </div>
+        );
+    }
 
-    const statusBadge = getStatusBadge(order.status);
+    if (isError || !data) {
+        return (
+            <div className="flex min-h-[400px] items-center justify-center">
+                <p className="text-destructive">Failed to load order details. Please try again.</p>
+            </div>
+        );
+    }
+
+    const fainalData = data?.find((item: any) => item.id === orderId) || data[0];
+
+    // تنسيق التاريخ بشكل آمن
+    const formattedDate = fainalData?.createdAt
+        ? new Date(fainalData.createdAt).toLocaleDateString('en-US', {
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        })
+        : "Recent";
+
+    const orderNumber = `ORD-2026-${orderId || '000'}`;
 
     return (
         <section className={cn("py-16 md:py-24", className)}>
@@ -236,7 +78,7 @@ const OrderSummary1 = ({
                     </h1>
                     <p className="text-muted-foreground">
                         A confirmation email has been sent to{" "}
-                        <span className="font-medium text-foreground">{order.email}</span>
+                        <span className="font-medium text-foreground">{uesrEmail || "customer@example.com"}</span>
                     </p>
                 </div>
 
@@ -246,7 +88,7 @@ const OrderSummary1 = ({
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                             <div>
                                 <p className="text-sm text-muted-foreground">Order Number</p>
-                                <p className="font-semibold">{order.orderNumber}</p>
+                                <p className="font-semibold">{orderNumber}</p>
                             </div>
                             <Separator
                                 orientation="vertical"
@@ -254,10 +96,12 @@ const OrderSummary1 = ({
                             />
                             <div>
                                 <p className="text-sm text-muted-foreground">Order Date</p>
-                                <p className="font-medium">{order.orderDate}</p>
+                                <p className="font-medium">{formattedDate}</p>
                             </div>
                         </div>
-                        <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
+                        <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10">
+                            Order Confirmed
+                        </Badge>
                     </CardContent>
                 </Card>
 
@@ -273,7 +117,7 @@ const OrderSummary1 = ({
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {fainalData?.cartItems?.map((item: any, index: any) => (
+                                {fainalData?.cartItems?.map((item: any, index: number) => (
                                     <div key={index}>
                                         <div className="flex gap-4">
                                             <div className="w-20 shrink-0">
@@ -282,24 +126,14 @@ const OrderSummary1 = ({
                                                     className="overflow-hidden rounded-lg bg-muted"
                                                 >
                                                     <img
-                                                        src={item?.product.imageCover}
-                                                        alt={item?.product.title}
+                                                        src={item?.product?.imageCover}
+                                                        alt={item?.product?.title}
                                                         className="size-full object-cover"
                                                     />
                                                 </AspectRatio>
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <h3 className="font-medium">{item?.product.title}</h3>
-                                                {/* {item?.details && (
-                                                    <p className="mt-0.5 text-sm text-muted-foreground">
-                                                        {item?.details.map((d, i) => (
-                                                            <span key={d.label}>
-                                                                {d.value}
-                                                                {i < item?.details!.length - 1 && " · "}
-                                                            </span>
-                                                        ))}
-                                                    </p>
-                                                )} */}
+                                                <h3 className="font-medium">{item?.product?.title}</h3>
                                                 <p className="mt-1 text-sm text-muted-foreground">
                                                     Qty: {item?.count}
                                                 </p>
@@ -343,12 +177,6 @@ const OrderSummary1 = ({
                                         <span className="text-muted-foreground">Tax</span>
                                         <span>{formatPrice(fainalData?.taxPrice)}</span>
                                     </div>
-                                    {/* {order.discount && order.discount > 0 && (
-                                        <div className="flex justify-between text-sm text-emerald-600">
-                                            <span>Discount</span>
-                                            <span>-{formatPrice(order.discount)}</span>
-                                        </div>
-                                    )} */}
                                     <Separator />
                                     <div className="flex justify-between text-lg font-semibold">
                                         <span>Total Paid</span>
@@ -371,9 +199,9 @@ const OrderSummary1 = ({
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div>
-                                    <p className="font-medium">{fainalData?.shippingAddress.city}</p>
+                                    <p className="font-medium">{fainalData?.shippingAddress?.city}</p>
                                     <p className="text-sm text-muted-foreground">
-                                        {fainalData?.shippingAddress.details}
+                                        {fainalData?.shippingAddress?.details}
                                     </p>
                                     <p className="text-sm text-muted-foreground">
                                         EGYPT
@@ -384,62 +212,15 @@ const OrderSummary1 = ({
                                     <Truck className="mt-0.5 size-4 text-muted-foreground" />
                                     <div>
                                         <p className="text-sm font-medium">
-                                            {fainalData?.paymentMethodType}
+                                            {fainalData?.paymentMethodType || "Standard Shipping"}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            Estimated delivery: {order.estimatedDelivery}
+                                            Payment: {fainalData?.paymentMethodType}
                                         </p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
-
-                        {/* Payment Information */}
-                        {/* <Card className="shadow-none">
-                            <CardHeader className="pb-4">
-                                <CardTitle className="flex items-center gap-2 text-lg">
-                                    <CreditCard className="size-5" />
-                                    Payment Method
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {order.paymentMethod.type === "card" && (
-                                    <div className="flex items-center gap-3">
-                                        <img
-                                            src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/visa-icon.svg"
-                                            alt="Visa"
-                                            className="size-8"
-                                        />
-                                        <div>
-                                            <p className="text-sm font-medium">
-                                                {order.paymentMethod.cardBrand} ending in{" "}
-                                                {order.paymentMethod.lastFour}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                Payment completed
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                                {order.paymentMethod.type === "paypal" && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex size-10 items-center justify-center rounded-md bg-muted">
-                                            <img
-                                                src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/paypal-icon.svg"
-                                                alt="PayPal"
-                                                className="size-5"
-                                            />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium">PayPal</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {order.paymentMethod.email}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card> */}
 
                         {/* Actions */}
                         <Card className="shadow-none">
