@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
     CheckCircle,
@@ -8,7 +9,7 @@ import {
     Printer,
     Truck,
 } from "lucide-react";
-import { cn } from "@/lib/utils"; // تأكد من مسار دالة cn لديك
+import { cn } from "@/lib/utils";
 
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Badge } from "@/components/ui/badge";
@@ -21,18 +22,33 @@ import Link from "next/link";
 
 const OrderSummary1 = ({ className }: { className?: string }) => {
     const { uesrEmail } = useUesrNameState();
-    const orderId = typeof window !== 'undefined' ? localStorage.getItem('orderId') : null;
 
+    // جلب البيانات عبر React Query
     const { data, isLoading, isError } = useQuery({
         queryKey: ['orderSummary'],
         queryFn: orderSummary,
     });
 
-    // تنسيق الأسعار بشكل آمن
+    const storedOrderId = typeof window !== 'undefined' ? localStorage.getItem('orderId') : null;
+
+    // تحديد الطلب الحالي بدقة (الاعتماد على الـ ID المخزن أو جلب أحدث طلب تلقائياً)
+    const fainalData = React.useMemo(() => {
+        if (!data || data.length === 0) return null;
+
+        if (storedOrderId) {
+            const found = data.find((item: any) => item.id === storedOrderId);
+            if (found) return found;
+        }
+
+        // إذا لم يوجد ID مخزن أو لم يتم العثور عليه، يختار أحدث طلب تلقائياً (آخر عنصر)
+        return data[data.length - 1];
+    }, [data, storedOrderId]);
+
+    // تنسيق الأسعار بشكل آمن لمنع ظهور NaN
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: "EGP",
+            currency: "USD",
         }).format(price || 0);
     };
 
@@ -44,7 +60,7 @@ const OrderSummary1 = ({ className }: { className?: string }) => {
         );
     }
 
-    if (isError || !data) {
+    if (isError || !fainalData) {
         return (
             <div className="flex min-h-[400px] items-center justify-center">
                 <p className="text-destructive">Failed to load order details. Please try again.</p>
@@ -52,9 +68,7 @@ const OrderSummary1 = ({ className }: { className?: string }) => {
         );
     }
 
-    const fainalData = data?.find((item: any) => item.id === orderId) || data[0];
-
-    // تنسيق التاريخ بشكل آمن
+    // تنسيق التاريخ بشكل آمن لمنع ظهور Invalid Date
     const formattedDate = fainalData?.createdAt
         ? new Date(fainalData.createdAt).toLocaleDateString('en-US', {
             month: "long",
@@ -63,7 +77,7 @@ const OrderSummary1 = ({ className }: { className?: string }) => {
         })
         : "Recent";
 
-    const orderNumber = `ORD-2026-${orderId || '000'}`;
+    const orderNumber = `ORD-2026-${fainalData?.id || '000'}`;
 
     return (
         <section className={cn("py-16 md:py-24", className)}>
@@ -127,7 +141,7 @@ const OrderSummary1 = ({ className }: { className?: string }) => {
                                                 >
                                                     <img
                                                         src={item?.product?.imageCover}
-                                                        alt={item?.product?.title}
+                                                        alt={item?.product?.title || "Product image"}
                                                         className="size-full object-cover"
                                                     />
                                                 </AspectRatio>
@@ -245,7 +259,7 @@ const OrderSummary1 = ({ className }: { className?: string }) => {
                 {/* Continue Shopping */}
                 <div className="mt-10 text-center">
                     <div className="flex flex-wrap justify-start gap-3">
-                        <Button >
+                        <Button>
                             <Link href="/home/product/1">Continue Shopping</Link>
                         </Button>
                     </div>
