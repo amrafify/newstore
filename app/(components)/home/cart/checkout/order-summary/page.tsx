@@ -63,7 +63,7 @@ interface OrderSummaryData {
 }
 
 let DEFAULT_ORDER: OrderSummaryData = {
-    orderNumber: `ORD-2026-${Number(localStorage.getItem('orderId'))}`,
+    orderNumber: `ORD-2026-000`,
     orderDate: "December 14, 2024",
     status: "confirmed",
     email: "customer@example.com",
